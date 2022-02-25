@@ -1,0 +1,3 @@
+@base_url=http://localhost:8080
+
+DELETE {{base_url}}/v1/tasks/9

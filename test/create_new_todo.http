@@ -1,0 +1,10 @@
+@base_url=http://localhost:8080
+
+POST {{base_url}}/v1/tasks
+Content-Type: application/json
+
+{
+    "P_ID": 5,
+    "text": "Test Task 5",
+    "is_complete": false
+}
