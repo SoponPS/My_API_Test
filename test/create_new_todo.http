@@ -4,7 +4,7 @@ POST {{base_url}}/v1/tasks
 Content-Type: application/json
 
 {
-    "P_ID": 6,
-    "text": "Test Task 6",
-    "is_complete": true
+    "P_ID": 10,
+    "text": "Test Task 10",
+    "is_complete": false
 }

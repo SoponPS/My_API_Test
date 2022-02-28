@@ -22,15 +22,15 @@ func (s *mongoDBStore) New(todo *todo.Todo) error {
 	return err
 }
 
-func (s *mongoDBStore) FindAfterCreated(id int) (*mongo.Cursor, error) {
-	opts := options.Find().SetProjection(bson.M{"p_id": 0, "title": 0, "is_complete": 0})
-	cur, err := s.Collection.Find(context.Background(), bson.M{"p_id":id}, opts)
-	return cur, err
+func (s *mongoDBStore) FindAfterCreated(id int) *mongo.SingleResult {
+	opts := options.FindOne().SetProjection(bson.M{"p_id": 0, "title": 0, "iscomplete": 0})
+	result := s.Collection.FindOne(context.Background(), bson.M{"p_id":id}, opts)
+	return result
 }
 
-func (s *mongoDBStore) Finding(id int) (*mongo.Cursor, error) {
-	cur, err := s.Collection.Find(context.Background(), bson.M{"p_id":id})
-	return cur, err
+func (s *mongoDBStore) Finding(id int) *mongo.SingleResult {
+	result := s.Collection.FindOne(context.Background(), bson.M{"p_id":id})
+	return result
 }
 
 func (s *mongoDBStore) FindAll() (*mongo.Cursor, error) {
@@ -38,12 +38,13 @@ func (s *mongoDBStore) FindAll() (*mongo.Cursor, error) {
 	return cur, err
 }
 
-func (s *mongoDBStore) Deleting(id int) error {
-	_, err := s.Collection.DeleteOne(context.Background(), bson.M{"p_id":id})
-	return err
+func (s *mongoDBStore) Deleting(id int) (*mongo.DeleteResult, error) {
+	result, err := s.Collection.DeleteOne(context.Background(), bson.M{"p_id":id})
+	return result, err
 }
 
-func (s *mongoDBStore) Updating(id int, todotitle string) (*mongo.UpdateResult, error) {
-	result, err := s.Collection.UpdateOne(context.Background(), bson.M{"p_id":id}, bson.M{"$set": bson.M{"title":todotitle}})
+func (s *mongoDBStore) Updating(id int, todo *todo.Todo) (*mongo.UpdateResult, error) {
+	updateData := bson.M{"$set": bson.M{"title":todo.Title, "iscomplete":todo.IsComplete}}
+	result, err := s.Collection.UpdateOne(context.Background(), bson.M{"p_id":id}, updateData)
 	return result, err
 }

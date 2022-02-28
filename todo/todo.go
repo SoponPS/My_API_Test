@@ -22,11 +22,11 @@ func (Todo) TableName() string {
 
 type storer interface {
 	New(*Todo) error
-	FindAfterCreated(int) (*mongo.Cursor, error)
-	Finding(int) (*mongo.Cursor, error)
+	FindAfterCreated(int) *mongo.SingleResult
+	Finding(int) *mongo.SingleResult
 	FindAll() (*mongo.Cursor, error)
-	Deleting(int) error
-	Updating(int, string) (*mongo.UpdateResult, error)
+	Deleting(int) (*mongo.DeleteResult, error)
+	Updating(int, *Todo) (*mongo.UpdateResult, error)
 }
 
 type TodoHandler struct {
@@ -63,9 +63,16 @@ func (t *TodoHandler) NewTask(c Context) {
 	}
 
 	//show result
-	var result []bson.M
-	cur, err := t.store.FindAfterCreated(int(todo.P_ID))
-	//defer cur.Close(context.Background())
+	var result bson.M
+	showResult := t.store.FindAfterCreated(int(todo.P_ID))
+	if showResult.Err() != nil {
+		c.JSON(http.StatusNotFound, map[string]interface{}{
+			"error": showResult.Err().Error(),
+		})
+		return
+	}
+
+	err = showResult.Decode(&result)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"error": err.Error(),
@@ -73,7 +80,6 @@ func (t *TodoHandler) NewTask(c Context) {
 		return
 	}
 	
-	cur.All(context.Background(), &result)
 	c.JSON(http.StatusCreated, result)
 }
 
@@ -96,13 +102,6 @@ func (t *TodoHandler) ListTask(c Context) {
 // Show 1 Task
 func (t *TodoHandler) ShowOneTask(c Context) {
 	idParam := c.Param("p_id")
-	if idParam == "" {
-		c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"error": "idparam error",
-		})
-		return
-	}
-
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -111,9 +110,16 @@ func (t *TodoHandler) ShowOneTask(c Context) {
 		return
 	}
 
-	var result []bson.M
-	cur, err := t.store.Finding(id)
-	//defer cur.Close(context.Background())
+	var result Todo
+	showResult := t.store.Finding(id)
+	if showResult.Err() != nil {
+		c.JSON(http.StatusNotFound, map[string]interface{}{
+			"error": showResult.Err().Error(),
+		})
+		return
+	}
+
+	err = showResult.Decode(&result)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"error": err.Error(),
@@ -121,7 +127,6 @@ func (t *TodoHandler) ShowOneTask(c Context) {
 		return
 	}
 	
-	cur.All(context.Background(), &result)
 	c.JSON(http.StatusOK, result)
 }
 
@@ -136,29 +141,28 @@ func (t *TodoHandler) DeleteOneTask(c Context) {
 		return
 	}
 
-	err = t.store.Deleting(id)
+	deleteResult, err := t.store.Deleting(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"error": err.Error(),
 		})
 		return
 	}
+	if deleteResult.DeletedCount == 0 {
+		c.JSON(http.StatusNotFound, map[string]interface{}{
+			"error": "no document matching with this id",
+		})
+		return
+	}
 
 	c.JSON(http.StatusNoContent, map[string]interface{}{
-		"status": "success",
+		"DeleteCount": deleteResult.DeletedCount,
 	})
 }
 
 // Update 1 Task
 func (t *TodoHandler) UpdateTask(c Context) {
 	idParam := c.Param("p_id")
-	if idParam == "" {
-		c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"error": "idparam error",
-		})
-		return
-	}
-
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -175,14 +179,20 @@ func (t *TodoHandler) UpdateTask(c Context) {
 		return
 	}
 
-	todotitle := todo.Title
-	result, err := t.store.Updating(id, todotitle)
+	updateResult, err := t.store.Updating(id, &todo)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"error": err.Error(),
 		})
 		return
 	}
-	
-	c.JSON(http.StatusNoContent, result)
+
+	if updateResult.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, map[string]interface{}{
+			"error": "no document matching with this id",
+		})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, updateResult)
 }
