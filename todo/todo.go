@@ -4,9 +4,6 @@ import (
 	"context"
 	"net/http"
 	"strconv"
-	_"fmt"
-
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -21,12 +18,13 @@ func (Todo) TableName() string {
 }
 
 type storer interface {
-	New(*Todo) error
+	New(*Todo) (*mongo.InsertOneResult, error)
 	FindAfterCreated(int) *mongo.SingleResult
 	Finding(int) *mongo.SingleResult
 	FindAll() (*mongo.Cursor, error)
 	Deleting(int) (*mongo.DeleteResult, error)
 	Updating(int, *Todo) (*mongo.UpdateResult, error)
+	NewMany([]interface{}) (*mongo.InsertManyResult, error)
 }
 
 type TodoHandler struct {
@@ -54,33 +52,15 @@ func (t *TodoHandler) NewTask(c Context) {
 		return
 	}
 
-	err := t.store.New(&todo)
+	insertResult, err := t.store.New(&todo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),
 		})
 		return
 	}
-
-	//show result
-	var result bson.M
-	showResult := t.store.FindAfterCreated(int(todo.P_ID))
-	if showResult.Err() != nil {
-		c.JSON(http.StatusNotFound, map[string]interface{}{
-			"error": showResult.Err().Error(),
-		})
-		return
-	}
-
-	err = showResult.Decode(&result)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"error": err.Error(),
-		})
-		return
-	}
 	
-	c.JSON(http.StatusCreated, result)
+	c.JSON(http.StatusCreated, insertResult.InsertedID)
 }
 
 //Show List Task
@@ -195,4 +175,26 @@ func (t *TodoHandler) UpdateTask(c Context) {
 	}
 
 	c.JSON(http.StatusNoContent, updateResult)
+}
+
+// Create New Many Tasks
+func (t *TodoHandler) NewManyTask(c Context) {
+	// create
+	todos := make([]interface{}, 3)
+	if err := c.Bind(&todos); err != nil {
+		c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	result, err := t.store.NewMany(todos)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+	
+	c.JSON(http.StatusCreated, result.InsertedIDs)
 }

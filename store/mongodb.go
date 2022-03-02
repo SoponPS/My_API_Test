@@ -17,9 +17,9 @@ func NewMongoDBStore(col *mongo.Collection) *mongoDBStore {
 	return &mongoDBStore{Collection: col}
 }
 
-func (s *mongoDBStore) New(todo *todo.Todo) error {
-	_, err := s.Collection.InsertOne(context.Background(), todo)
-	return err
+func (s *mongoDBStore) New(todo *todo.Todo) (*mongo.InsertOneResult, error) {
+	result, err := s.Collection.InsertOne(context.Background(), todo)
+	return result, err
 }
 
 func (s *mongoDBStore) FindAfterCreated(id int) *mongo.SingleResult {
@@ -46,5 +46,10 @@ func (s *mongoDBStore) Deleting(id int) (*mongo.DeleteResult, error) {
 func (s *mongoDBStore) Updating(id int, todo *todo.Todo) (*mongo.UpdateResult, error) {
 	updateData := bson.M{"$set": bson.M{"title":todo.Title, "iscomplete":todo.IsComplete}}
 	result, err := s.Collection.UpdateOne(context.Background(), bson.M{"p_id":id}, updateData)
+	return result, err
+}
+
+func (s *mongoDBStore) NewMany(todos []interface{}) (*mongo.InsertManyResult, error) {
+	result, err := s.Collection.InsertMany(context.Background(), todos)
 	return result, err
 }

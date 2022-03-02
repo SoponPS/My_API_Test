@@ -1,0 +1,12 @@
+@base_url=http://localhost:8080
+
+POST {{base_url}}/v1/tasks
+Content-Type: application/json
+
+{
+   tasks: [
+      {"P_ID": 13,"text": "Test Task 13","is_complete": false},
+      {"P_ID": 14,"text": "Test Task 14","is_complete": true},
+      {"P_ID": 15,"text": "Test Task 15","is_complete": false}
+   ]
+}
