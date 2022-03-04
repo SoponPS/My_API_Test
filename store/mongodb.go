@@ -49,7 +49,7 @@ func (s *mongoDBStore) Updating(id int, todo *todo.Todo) (*mongo.UpdateResult, e
 	return result, err
 }
 
-func (s *mongoDBStore) NewMany(todos []interface{}) (*mongo.InsertManyResult, error) {
+/* func (s *mongoDBStore) NewMany(todos []todo.Todo) (*mongo.InsertManyResult, error) {
 	result, err := s.Collection.InsertMany(context.Background(), todos)
 	return result, err
-}
+} */

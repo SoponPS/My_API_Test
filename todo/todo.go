@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -24,7 +25,7 @@ type storer interface {
 	FindAll() (*mongo.Cursor, error)
 	Deleting(int) (*mongo.DeleteResult, error)
 	Updating(int, *Todo) (*mongo.UpdateResult, error)
-	NewMany([]interface{}) (*mongo.InsertManyResult, error)
+	//NewMany([]Todo) (*mongo.InsertManyResult, error)
 }
 
 type TodoHandler struct {
@@ -178,9 +179,9 @@ func (t *TodoHandler) UpdateTask(c Context) {
 }
 
 // Create New Many Tasks
-func (t *TodoHandler) NewManyTask(c Context) {
+/* func (t *TodoHandler) NewManyTask(c Context) {
 	// create
-	todos := make([]interface{}, 3)
+	var todos []Todo
 	if err := c.Bind(&todos); err != nil {
 		c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),
@@ -188,13 +189,15 @@ func (t *TodoHandler) NewManyTask(c Context) {
 		return
 	}
 
+	fmt.Println(todos)
+
 	result, err := t.store.NewMany(todos)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, map[string]interface{}{
+		c.JSON(http.StatusNoContent, map[string]interface{}{
 			"error": err.Error(),
 		})
 		return
 	}
 	
 	c.JSON(http.StatusCreated, result.InsertedIDs)
-}
+} */

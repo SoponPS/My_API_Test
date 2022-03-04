@@ -37,12 +37,12 @@ func main() {
 	//gormStore := store.NewGormStore(db)
 	mongoStore := store.NewMongoDBStore(collection)
 	handler := todo.NewTodoHandler(mongoStore)
-	//r.POST("/v1/tasks", handler.NewTask)
+	r.POST("/v1/tasks", handler.NewTask)
 	r.GET("/v1/tasks", handler.ListTask)
 	r.GET("/v1/tasks/:p_id", handler.ShowOneTask)
 	r.DELETE("/v1/tasks/:p_id", handler.DeleteOneTask)
 	r.PUT("/v1/tasks/:p_id", handler.UpdateTask)
-	r.POST("/v1/tasks", handler.NewManyTask)
+	//r.POST("/v1/tasks", handler.NewManyTask)
 
 	if err := r.Listen(":"+os.Getenv("PORT")); err != http.ErrServerClosed {
 		log.Fatalf("listen: %s\n", err)
