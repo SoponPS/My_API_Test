@@ -10,7 +10,7 @@ import (
 
 type Todo struct {
 	P_ID uint `json:"p_id"`
-	Title string `json:"text" binding:"required"`
+	Title string `json:"title" binding:"required"`
 	IsComplete bool `json:"is_complete" binding:"required"`
 }
 

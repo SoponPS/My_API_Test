@@ -1,9 +1,9 @@
 @base_url=http://localhost:8080
 
-PUT  {{base_url}}/v1/tasks/8
+PUT  {{base_url}}/v1/tasks/3
 Content-Type: application/json
 
 {
-    "text":"Test Task 13",
-    "is_complete":true
+    "title":"Test Task 3",
+    "is_complete":false
 }
