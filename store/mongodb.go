@@ -6,7 +6,6 @@ import (
 	"github.com/Cnes-Consulting/backend_assignment/todo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type mongoDBStore struct {
@@ -20,12 +19,6 @@ func NewMongoDBStore(col *mongo.Collection) *mongoDBStore {
 func (s *mongoDBStore) New(todo *todo.Todo) (*mongo.InsertOneResult, error) {
 	result, err := s.Collection.InsertOne(context.Background(), todo)
 	return result, err
-}
-
-func (s *mongoDBStore) FindAfterCreated(id int) *mongo.SingleResult {
-	opts := options.FindOne().SetProjection(bson.M{"p_id": 0, "title": 0, "iscomplete": 0})
-	result := s.Collection.FindOne(context.Background(), bson.M{"p_id":id}, opts)
-	return result
 }
 
 func (s *mongoDBStore) Finding(id int) *mongo.SingleResult {
@@ -49,7 +42,11 @@ func (s *mongoDBStore) Updating(id int, todo *todo.Todo) (*mongo.UpdateResult, e
 	return result, err
 }
 
-/* func (s *mongoDBStore) NewMany(todos []todo.Todo) (*mongo.InsertManyResult, error) {
-	result, err := s.Collection.InsertMany(context.Background(), todos)
+func (s *mongoDBStore) NewMany(todos []todo.Todo) (*mongo.InsertManyResult, error) {
+	tasks := make([]interface{}, len(todos))
+	for i := range todos {
+		tasks[i] = todos[i]
+	}
+	result, err := s.Collection.InsertMany(context.Background(), tasks)
 	return result, err
-} */
+}

@@ -20,12 +20,11 @@ func (Todo) TableName() string {
 
 type storer interface {
 	New(*Todo) (*mongo.InsertOneResult, error)
-	FindAfterCreated(int) *mongo.SingleResult
 	Finding(int) *mongo.SingleResult
 	FindAll() (*mongo.Cursor, error)
 	Deleting(int) (*mongo.DeleteResult, error)
 	Updating(int, *Todo) (*mongo.UpdateResult, error)
-	//NewMany([]Todo) (*mongo.InsertManyResult, error)
+	NewMany([]Todo) (*mongo.InsertManyResult, error)
 }
 
 type TodoHandler struct {
@@ -179,7 +178,7 @@ func (t *TodoHandler) UpdateTask(c Context) {
 }
 
 // Create New Many Tasks
-/* func (t *TodoHandler) NewManyTask(c Context) {
+func (t *TodoHandler) NewManyTask(c Context) {
 	// create
 	var todos []Todo
 	if err := c.Bind(&todos); err != nil {
@@ -188,8 +187,6 @@ func (t *TodoHandler) UpdateTask(c Context) {
 		})
 		return
 	}
-
-	fmt.Println(todos)
 
 	result, err := t.store.NewMany(todos)
 	if err != nil {
@@ -200,4 +197,4 @@ func (t *TodoHandler) UpdateTask(c Context) {
 	}
 	
 	c.JSON(http.StatusCreated, result.InsertedIDs)
-} */
+}
